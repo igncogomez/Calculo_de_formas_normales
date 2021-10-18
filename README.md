@@ -1,2 +1,2 @@
 # Calculo_de_formas_normales
-Este repositorio contiene una serie de códigos para determinar los coeficientes del símbolo de la forma normal cuántica para ciertos operadores Hamiltonianos discutidos en mi trabajo especial de la lic en matemática, FAMAF.
+El trabajo al cual se hace referencia puede consultarse en <b> dsas </b>. Los códigos aquí contenidos siguen el orden y la nomenclatura hallados en el Apéndice B.
