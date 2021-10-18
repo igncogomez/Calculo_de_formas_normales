@@ -1,0 +1,90 @@
+Clear["Global`*"]
+d = 1;
+m = 10;
+q = {q1};
+p = {p1};
+z = Join[q, p];
+x = {x1};
+xi = {xi1};
+H[h_, q1_, p1_] := (1*p1^2)/2 + (1*Exp[q1 + Log[11/9]])/(2*(1 + Exp[q1 + Log[11/9]])) + (5*Exp[q1 + Log[11/9]])/(1 + Exp[q1 + Log[11/9]])^2; 
+H00[q1_, p1_] := (1*p1^2)/2 + (1*Exp[q1 + Log[11/9]])/(2*(1 + Exp[q1 + Log[11/9]])) + (5*Exp[q1 + Log[11/9]])/(1 + Exp[q1 + Log[11/9]])^2; 
+q0 = {0};
+p0 = {0};
+z0 = Join[q0, p0];
+J = ConstantArray[0, {2*d, 2*d}];
+For[i = 1, i != d + 1, i++, J[[i,d + i]] = 1];
+For[i = 1, i != d + 1, i++, J[[d + i,i]] = -1];
+A = ConstantArray[0, {2*d, 2*d}];
+For[i = 1, i != 2*d + 1, i++, For[j = 1, j != 2*d + 1, j++, A[[i,j]] = D[H00[Sequence @@ z], z[[i]], z[[j]]] /. Thread[z -> z0]]];
+B = J . A;
+e1 = Eigensystem[B][[1]][[2]];
+e2 = Eigensystem[B][[1]][[1]];
+v1 = Eigensystem[B][[2]][[2]];
+v2 = Eigensystem[B][[2]][[1]];
+Orden[a_, k_] := Module[{QQ, PP}, QQ = CoefficientRules[Expand[a[h, q1, p1]], {h, q1, p1}];
+For[i = 1, i != Length[QQ] + 1, i++, QQ[[i]][[1]][[1]] = QQ[[i]][[1]][[1]]*2];
+     PP = Select[QQ, Total[#1[[1]]] == k & ]; For[i = 1, i != Length[PP] + 1, i++, PP[[i]][[1]][[1]] = PP[[i]][[1]][[1]]/2];
+FromCoefficientRules[PP, {h, q1, p1}]]; 
+OrdenBIS[a_, k_] := Module[{QQ, PP}, QQ = CoefficientRules[Expand[a[h, x1, xi1]], {h, x1, xi1}];
+For[i = 1, i != Length[QQ] + 1, i++, QQ[[i]][[1]][[1]] = QQ[[i]][[1]][[1]]*2]; 
+     PP = Select[QQ, Total[#1[[1]]] == k & ];
+For[i = 1, i != Length[PP] + 1, i++, PP[[i]][[1]][[1]] = PP[[i]][[1]][[1]]/2];
+FromCoefficientRules[PP, {h, x1, xi1}]]; 
+StarProduct[a_, b_] := 
+Sum[Sum[(((I*h)/2)^s*1*Sum[(-1)^t*Binomial[s, t]*D[D[a[Sequence @@ Join[{h}, q, p]], {Join[{h}, q, p][[j + d + 1]], t}], {Join[{h}, q, p][[j + 1]], s - t}]*
+
+        D[D[b[Sequence @@ Join[{h}, q, p]], {Join[{h}, q, p][[j + d + 1]], s - t}], {Join[{h}, q, p][[j + 1]], t}], {t, 0, s}])/s!,
+{s, 0,Max[{Max[{Max[Exponent[a[Sequence @@ Join[{h},z]],Join[{h},z]]],Max[Exponent[b[Sequence @@ Join[{h},z]],Join[{h},z]]]}]}]}], {j, 1, d}];
+MoyalBracket[a_, b_] := -((I*(StarProduct[a, b] - StarProduct[b, a]))/h);
+MoyalBracket[a_, b_] := -((I*(StarProduct[a, b] - StarProduct[b, a]))/h);
+X = Normal[Series[H[h*t, q1*t, p1*t], {t, 0, m}]] /. t -> 1; 
+H0[h_, q1_, p1_] = X;
+H1[h_, q1_, p1_] = H0[Sequence @@ Join[{h}, q + q0, p + p0]];
+c = ConstantArray[0, d];
+c[[1]] = (v1 . (J . v2))^(-2^(-1));
+v = {v1, v2};
+M = ConstantArray[0, {2*d, 2*d}];
+M[[All,1]] = c[[1]]*v1;
+M[[All,d + 1]] = c[[1]]*v2;
+H2[h_, q1_, p1_] = H1[Sequence @@ Join[{h}, M . z]];
+H2[h_, q1_, p1_] = Expand[H2[h, q1, p1]];
+H2[h_, q1_, p1_] = Chop[H2[h, q1, p1], 10^(-15)];
+K[h_, q1_, p1_] = H2[h, q1, p1];
+Z = ConstantArray[0, 2*d];
+Z[[1]] = x1;
+Z[[d + 1]] = xi1;
+For[i = 2, i != d + 1, i++, Z[[i]] = (1*(x[[i]] + I*xi[[i]]))/Sqrt[2]];
+For[i = d + 2, i != 2*d + 1, i++, Z[[i]] = (1*(xi[[i - d]] + I*x[[i - d]]))/Sqrt[2]];
+ZZ = {q1, p1}; 
+Y = ConstantArray[1, 2*d];
+WW = ConstantArray[0, m - 2];
+
+
+For[n=3,n<=m,n++,Print["--------------------------------------- ", n, " ---------------------------------------"]; 
+  KT[h_, x1_, xi1_] = Expand[K[Sequence @@ Join[{h}, Z]]];
+Kn[h_, x1_, xi1_] = OrdenBIS[KT, n];
+COEFF = Flatten[CoefficientList[Expand[Kn[h, x1, xi1]], {h, x1, xi1}]]; 
+MAX = ConstantArray[0, 2*d + 1];
+For[i = 1, i != 2*d + 2, i++, MAX[[i]] = Length[CoefficientList[Expand[Kn[h, x1, xi1]], Join[{h}, x, xi][[i]] /. Thread[Delete[Join[{h}, x, xi], i]] -> Y]]];
+W = 0; 
+   For[i = 1, i != Length[COEFF] + 1, i++, If[Mod[i - 1, MAX[[3]]] != Mod[Quotient[i - 1, MAX[[3]]], MAX[[2]]] && COEFF[[i]] != 0, 
+     W = W + Expand[(COEFF[[i]]*(h^Mod[Quotient[i - 1, MAX[[3]]*MAX[[2]]], MAX[[1]]]*x1^Mod[Quotient[i - 1, MAX[[3]]], MAX[[2]]]*xi1^Mod[i - 1, MAX[[3]]]))/
+         (e1*(Mod[i - 1, MAX[[3]]] - Mod[Quotient[i - 1, MAX[[3]]], MAX[[2]]]))], ""]];
+L[h_, x1_, xi1_] = W;
+Wn[h_, q1_, p1_] = Expand[L[Sequence @@ Join[{h}, ZZ]]]; 
+Mad[a_] := MoyalBracket[Wn, a];
+Clear[W];
+W = 0;
+For[s = n, s != m + 1, s++, 
+    W = W + Expand[Orden[K, s]];
+For[k = 1, k != Floor[s/(n - 2)] + 1, k++,
+HELP[h_, q1_, p1_] = Orden[K, s - k*(n - 2)];
+DUMMY[h_, q1_, p1_] = Expand[HELP[h, q1, p1]];
+    For[l = 1, l != k + 1, l++, DUMMY[h_, q1_, p1_] = Expand[Mad[DUMMY]]];
+W = Expand[W + 1/Factorial[k]*DUMMY[h, q1, p1]]]];
+   K[h_, q1_, p1_] = K[h, q1, p1] - Sum[Orden[K, i], {i, n, m}];
+K[h_, q1_, p1_] = K[h, q1, p1] + W];
+
+KT[h_, x1_, xi1_] = Chop[N[Expand[K[Sequence@@Join[{h},Z]]]],10^(-16)]
+
+(*Save["1DoF_QNF",KT]*)
